@@ -10,12 +10,13 @@ class Jogo:
         self.produtora = produtora
         self.plataforma = plataforma
 
-    def to_bytes(self):
+    def converte_para_bytes(self):
         """Converte o objeto Jogo para uma representação em bytes."""
-        return f"{self.id}|{self.titulo}|{self.ano}|{self.genero}|{self.produtora}|{self.plataforma}|".encode('utf-8')
+        return f"{self.id}|{self.titulo}|{self.ano}|{self.genero}|{self.produtora}|{self.plataforma}|".encode()
 
-    @staticmethod
-    def from_bytes(byte_data):
+    
+    def converte_de_bytes(byte_data):
         """Cria um objeto Jogo a partir de uma representação em bytes."""
-        dados = byte_data.decode('utf-8').split('|')
-        return Jogo(*dados[:-1])  # Ignora o último campo vazio devido ao '|' final
+        dados = byte_data.decode().split('|')
+        return dados
+        #return Jogo(*dados[:-1])  # Ignora o último campo vazio devido ao '|' final

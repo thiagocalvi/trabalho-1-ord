@@ -1,7 +1,7 @@
 import struct
 import sys
 
-import Jogo
+from Jogo import Jogo
 
 class GerenciadorArquivo:
     """Gerencia operações no arquivo de dados."""
@@ -51,15 +51,15 @@ class GerenciadorArquivo:
                 return None
             tamanho = struct.unpack('H', tamanho_bytes)[0]
             dados = self.arquivo.read(tamanho)
-            jogo = Jogo.from_bytes(dados)
-            if jogo.id == id:
+            jogo = Jogo.converte_de_bytes(dados)
+            if jogo[id] == id:
                 print(f"Busca pelo registro de chave \"{id}\"")
                 print(f"{jogo.id}|{jogo.titulo}|{jogo.ano}|{jogo.genero}|{jogo.produtora}|{jogo.plataforma}| ({tamanho} bytes)")
                 return posicao, tamanho + self.TAMANHO_REGISTRO_BYTES
 
     def inserir(self, jogo):
         """Insere um novo jogo no arquivo, utilizando a LED se possível."""
-        dados = jogo.to_bytes()
+        dados = jogo.converte_para_bytes()
         tamanho = len(dados)
         registro = struct.pack('H', tamanho) + dados
 
