@@ -1,8 +1,5 @@
 class Jogo:
-    """Representa um registro de jogo no arquivo."""
-
     def __init__(self, id, titulo, ano, genero, produtora, plataforma):
-        """Inicializa um objeto Jogo com os dados fornecidos."""
         self.id = int(id)
         self.titulo = titulo
         self.ano = int(ano)
@@ -10,13 +7,16 @@ class Jogo:
         self.produtora = produtora
         self.plataforma = plataforma
 
-    def converte_para_bytes(self):
-        """Converte o objeto Jogo para uma representação em bytes."""
+    def converterParaBytes(self):
         return f"{self.id}|{self.titulo}|{self.ano}|{self.genero}|{self.produtora}|{self.plataforma}|".encode()
 
     
-    def converte_de_bytes(byte_data):
-        """Cria um objeto Jogo a partir de uma representação em bytes."""
+    def converterDeBytes(byte_data):
         dados = byte_data.decode().split('|')
-        return dados
-        #return Jogo(*dados[:-1])  # Ignora o último campo vazio devido ao '|' final
+        if dados[-1] == '':
+            dados == dados[:-1]
+        
+        if len(dados) != 6:
+            raise ValueError("Dados inválidos: número incorreto de campos")
+        
+        return Jogo(*dados)
