@@ -71,3 +71,51 @@ Os dados devem ser apresentados da seguinte forma:
 LED -> [offset: 4, tam: 80] -> [offset: 218, tam: 50] -> [offset: 169, tam: 47] -> [offset: -1]
 Total: 3 espacos disponiveis
 ```
+
+## Definição dos métodos da classe GerenciadorArquivo
+
+**lerCabecalho:**
+* Não têm parâmetros.
+* Deve ler o cabeçalho do arquivo **dados.dat**.
+* Como o cabeçalho do arquivo guarda a cabeça da LED deve converter esse valor de bytes para um inteiro e retornar esse valor.
+* Retorna um inteiro.
+
+
+
+### GerenciadorLED
+Os métodos referente ao GerenciadorLED são usados unicamente para manipular a LED que está armazenada no arquivo **dados.dat**.
+
+Esses métodos estão logo abaixo do comentário #GerenciadorLED
+
+**inserirEspacoLED:**
+* Recebe como parâmetro o byte offset do novo registro que será inserido na LED.
+* Verifica se o tamanho do novo espaço é menor que o tamanho minimo de fragmentação, se for menor retorna "Espaço muito pequeno para ser reutilizado".
+* Insere o novo espaço na LED mantendo a LED ordenada de forma decrescente, estratégia pior ajuste (worst-fit).
+* Sem retorno.
+
+**removerEspacoLED:**
+* Não têm parâmetros.
+* Remove o espaço que está na cabeça da LED.
+* Adiciona o byte offset do próximo espaço da LED na cabeça da LED.
+* Retorna "Espaço removido".
+* Se a LED estiver vazia retorna "A LED está vazia!",
+
+**imprimirLED:**
+* Não têm parâmetros.
+* Imprime os espaços que estão armazenados na LED.
+* Sem retorno.
+
+**quantidadeEspacosDisponiveisLED:**
+* Não têm parâmetros.
+* Contabiliza a quantidade espaços que estão armazenados na LED.
+* Retorna um inteiro
+
+**tamanhoEspaco:**
+* Recebe como parâmetro o byte offset de um registro
+* Retorna o tamanho do registro no byte offset informado.
+* Retorna um inteiro.
+
+**resetPonteiro:**
+* Não têm parâmetros.
+* Posiciona o ponteiro de Leitura/Escrita no inicio do arquivo.
+* Sem retorno.
