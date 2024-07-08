@@ -74,6 +74,8 @@ Total: 3 espacos disponiveis
 
 ## Definição dos métodos da classe GerenciadorArquivo
 
+### GerenciadorArquivo
+
 **lerCabecalho:**
 * Não têm parâmetros.
 * Deve ler o cabeçalho do arquivo **dados.dat**.
