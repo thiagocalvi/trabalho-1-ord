@@ -5,6 +5,17 @@ class GerenciadorArquivo:
         self.MIN_SIZE_FRAGMENTATION = min_size_fragmentation
         self.RECORD_SIZE_FIELD = record_size_field
 
+    def tamanhoEspaco(self, byteOffset) -> int:
+        #Retorna o tamanho do registro que pode ser armazenado ou está armazenado no byteoffset informado
+        self.file.seek(byteOffset)
+        tam_registro = self.file.read(2)
+        tam_registro = int.from_bytes(tam_registro)
+        self.resetPonteiro()
+        return tam_registro
+    
+    def resetPonteiro(self) -> None:
+        #reset do ponteiro de E/L
+        self.file.seek(0)
 
     
     #GerenciadorLED
@@ -119,15 +130,3 @@ class GerenciadorArquivo:
             contador += 1
         self.resetPonteiro()
         return contador
-
-    def tamanhoEspaco(self, byteOffset) -> int:
-        #Retorna o tamanho do registro que pode ser armazenado ou está armazenado no byteoffset informado
-        self.file.seek(byteOffset)
-        tam_registro = self.file.read(2)
-        tam_registro = int.from_bytes(tam_registro)
-        self.resetPonteiro()
-        return tam_registro
-    
-    def resetPonteiro(self) -> None:
-        #reset do ponteiro de E/L
-        self.file.seek(0)

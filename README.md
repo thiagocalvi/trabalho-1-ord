@@ -80,7 +80,15 @@ Total: 3 espacos disponiveis
 * Como o cabeçalho do arquivo guarda a cabeça da LED deve converter esse valor de bytes para um inteiro e retornar esse valor.
 * Retorna um inteiro.
 
+**tamanhoEspaco:**
+* Recebe como parâmetro o byte offset de um registro
+* Retorna o tamanho do registro no byte offset informado.
+* Retorna um inteiro.
 
+**resetPonteiro:**
+* Não têm parâmetros.
+* Posiciona o ponteiro de Leitura/Escrita no inicio do arquivo.
+* Sem retorno.
 
 ### GerenciadorLED
 Os métodos referente ao GerenciadorLED são usados unicamente para manipular a LED que está armazenada no arquivo **dados.dat**.
@@ -109,13 +117,3 @@ Esses métodos estão logo abaixo do comentário #GerenciadorLED
 * Não têm parâmetros.
 * Contabiliza a quantidade espaços que estão armazenados na LED.
 * Retorna um inteiro
-
-**tamanhoEspaco:**
-* Recebe como parâmetro o byte offset de um registro
-* Retorna o tamanho do registro no byte offset informado.
-* Retorna um inteiro.
-
-**resetPonteiro:**
-* Não têm parâmetros.
-* Posiciona o ponteiro de Leitura/Escrita no inicio do arquivo.
-* Sem retorno.
