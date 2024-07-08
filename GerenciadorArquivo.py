@@ -10,7 +10,7 @@ class GerenciadorArquivo:
     #GerenciadorLED
     def inserirEspacoLED(self, offset_novo_espaco) -> None:
         if self.tamanhoEspaco(offset_novo_espaco) < self.MIN_SIZE_FRAGMENTATION:
-            return "Espaço muito prqueno para ser reutilizado"
+            return "Espaço muito pequeno para ser reutilizado"
         
         else:
             index = int.from_bytes(self.lerCabecalho())
@@ -70,7 +70,7 @@ class GerenciadorArquivo:
 
     def removerEspacoLED(self) -> None:
         #Remove o espaço que esta na cabeça da LED
-        #O byteoffset armazenado no beçalho é substituido pelo byteoffset que o geristro armazenava
+        #O byteoffset armazenado no ceçalho é substituido pelo byteoffset que o geristro armazenava
         cabeca_led:int = int.from_bytes(self.lerCabecalho())
         if cabeca_led != -1:
             self.file.seek(cabeca_led)
@@ -81,7 +81,7 @@ class GerenciadorArquivo:
         else:
             return "A LED está vazia!"
 
-    def imprimirLED(self) -> str:
+    def imprimirLED(self) -> None:
         #Imprime a LED no seguinte formato
         # LED -> [offset: 4, tam: 80] -> [offset: 218, tam: 50] -> [offset: 169, tam: 47] -> [offset: -1]
         #Total: 3 espacos disponiveis
@@ -121,7 +121,7 @@ class GerenciadorArquivo:
         return contador
 
     def tamanhoEspaco(self, byteOffset) -> int:
-        #Retorna o tamnho do registro que pode ser armazenado ou está armazenado no byteoffset informado
+        #Retorna o tamanho do registro que pode ser armazenado ou está armazenado no byteoffset informado
         self.file.seek(byteOffset)
         tam_registro = self.file.read(2)
         tam_registro = int.from_bytes(tam_registro)
