@@ -6,7 +6,8 @@ class GerenciadorArquivo:
         self.RECORD_SIZE_FIELD = record_size_field
 
     def tamanhoEspaco(self, byteOffset) -> int:
-        #Retorna o tamanho do registro que pode ser armazenado ou está armazenado no byteoffset informado
+        #Retorna o tamanho do registro no byteoffset informado
+        self.resetPonteiro()
         self.file.seek(byteOffset)
         tam_registro = self.file.read(2)
         tam_registro = int.from_bytes(tam_registro)
@@ -14,10 +15,24 @@ class GerenciadorArquivo:
         return tam_registro
     
     def resetPonteiro(self) -> None:
-        #reset do ponteiro de E/L
+        #reset do ponteiro de L/E
         self.file.seek(0)
 
-    
+    def lerCabecalho(self)-> int:
+        self.resetPonteiro()
+        cabecalho = self.file.read(self.HEADER_SIZE)
+        cabecalho = int.from_bytes(cabecalho)
+        return cabecalho
+
+    def escreverCabecalho(self, dado_) -> None:
+        if type(dado) != bytes:
+            dado = dado_.to_bytes(self.HEADER_SIZE)
+        else:
+            dado = dado
+            
+        self.resetPonteiro()
+        self.file.write(dado)
+
     #GerenciadorLED
     def inserirEspacoLED(self, offset_novo_espaco) -> None:
         if self.tamanhoEspaco(offset_novo_espaco) < self.MIN_SIZE_FRAGMENTATION:
@@ -26,7 +41,7 @@ class GerenciadorArquivo:
         else:
             index = int.from_bytes(self.lerCabecalho())
             if index == -1:
-                self.escreverCabecalho(offset_novo_espaco.to_bytes(self.HEADER_SIZE))
+                self.escreverCabecalho(offset_novo_espaco)
             else:
                 self.resetPonteiro()
                 self.file.seek(offset_novo_espaco)
@@ -46,17 +61,17 @@ class GerenciadorArquivo:
                     while index != -1:  
                         self.file.seek(index)
                         tam_index_atual = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
-                        self.file.seek(1)
+                        self.file.seek(1, 1)
                         next_offset = int.from_bytes(self.file.read(self.HEADER_SIZE))
 
                         if tam_novo_espaco >= tam_index_atual:
                             self.resetPonteiro()
                             self.file.seek(offset_novo_espaco)
-                            self.file.seek(3)
+                            self.file.seek(3, 1)
                             self.file.write(next_offset.to_bytes(self.HEADER_SIZE))
                             self.resetPonteiro()
                             self.file.seek(index)
-                            self.file.seek(3)
+                            self.file.seek(3, 1)
                             self.file.write(offset_novo_espaco.to_bytes(self.HEADER_SIZE))
                             self.resetPonteiro()
                             break
@@ -64,11 +79,11 @@ class GerenciadorArquivo:
                         elif next_offset == -1:
                             self.resetPonteiro()
                             self.file.seek(index)
-                            self.file.seek(3)
+                            self.file.seek(3, 1)
                             self.file.write(offset_novo_espaco.to_bytes(self.HEADER_SIZE))
                             self.resetPonteiro()
                             self.file.seek(offset_novo_espaco)
-                            self.file.seek(3)
+                            self.file.seek(3, 1)
                             end_led = -1
                             self.file.write(end_led.to_bytes(self.HEADER_SIZE))
                             self.resetPonteiro()
@@ -85,9 +100,10 @@ class GerenciadorArquivo:
         cabeca_led:int = int.from_bytes(self.lerCabecalho())
         if cabeca_led != -1:
             self.file.seek(cabeca_led)
-            self.seek(3)
+            self.seek(3, 1)
             nova_cabeca:bytes = self.file.read(self.HEADER_SIZE)
             self.escreverCabecalho(nova_cabeca)
+            self.resetPonteiro()
             return "Espaço removido!"
         else:
             return "A LED está vazia!"
