@@ -130,3 +130,4 @@ class GerenciadorArquivo:
             contador += 1
         self.resetPonteiro()
         return contador
+
