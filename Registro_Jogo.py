@@ -8,6 +8,7 @@ class Registro_Jogo:
         return registro_string
 
     def identificador(self) -> int:
+        # Chave do registro que se encontra no primeiro campo
         reg_str = self.dados_em_string()
         chave = reg_str.split(sep='|')[0]
         chave_int = int(chave)
@@ -17,6 +18,7 @@ class Registro_Jogo:
         return self.registro
     
     def atributos(self):
+        # Informações que estão no registro
         reg_str = self.dados_em_string()
         lista_atributos = reg_str.split(sep='|')
         print(f'Chave/Identificador de registro: {lista_atributos[0]}')
