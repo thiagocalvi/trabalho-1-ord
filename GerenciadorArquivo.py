@@ -7,11 +7,9 @@ class GerenciadorArquivo:
 
     def tamanhoEspaco(self, byteOffset) -> int:
         #Retorna o tamanho do registro no byteoffset informado
-        self.resetPonteiro()
         self.file.seek(byteOffset)
         tam_registro = self.file.read(2)
         tam_registro = int.from_bytes(tam_registro)
-        self.resetPonteiro()
         return tam_registro
     
     def resetPonteiro(self) -> None:
