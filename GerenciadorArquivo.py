@@ -1,37 +1,75 @@
+import Jogo
+
 class GerenciadorArquivo:
-    def __init__(self, file, header_size=4, record_size_field=2, min_size_fragmentation=10) -> None:
+    def __init__(self, file:str, header_size=4, record_size_field=2, min_size_fragmentation=10) -> None:
         self.file = file
         self.HEADER_SIZE = header_size
         self.MIN_SIZE_FRAGMENTATION = min_size_fragmentation
         self.RECORD_SIZE_FIELD = record_size_field
 
+    def abirArquivo(self) -> None:
+        self.file = open(self.file, 'r+b')
+
+    def fecharArquivo(self) -> None:
+        self.file.close()
+    
     def tamanhoEspaco(self, byteOffset) -> int:
         #Retorna o tamanho do registro no byteoffset informado
-        self.resetPonteiro()
         self.file.seek(byteOffset)
-        tam_registro = self.file.read(2)
-        tam_registro = int.from_bytes(tam_registro)
-        self.resetPonteiro()
+        tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
         return tam_registro
     
     def resetPonteiro(self) -> None:
         #reset do ponteiro de L/E
         self.file.seek(0)
 
-    def lerCabecalho(self)-> int:
+    def lerCabecalho(self) -> int:
         self.resetPonteiro()
         cabecalho = self.file.read(self.HEADER_SIZE)
         cabecalho = int.from_bytes(cabecalho)
         return cabecalho
 
     def escreverCabecalho(self, dado_) -> None:
-        if type(dado) != bytes:
+        global dado
+        if type(dado_) != bytes:
             dado = dado_.to_bytes(self.HEADER_SIZE)
         else:
-            dado = dado
-            
+            dado = dado            
+        
         self.resetPonteiro()
         self.file.write(dado)
+
+    def buscarRegistro(self, indenficador:str)-> Jogo:
+        self.file.seek(self.HEADER_SIZE)
+        
+        tam = int.from_bytes(self.file.read(2))
+        c = self.file.read(tam).decode()
+
+        while c != "":
+            a = c.split("|")
+            if indenficador in a:
+                return a[:-1]
+            tam = int.from_bytes(self.file.read(2))
+            c = self.file.read(tam).decode()
+
+        return "Registro não encontrado"
+
+
+    def percorrerArquivo(self):
+        self.file.seek(self.HEADER_SIZE)
+        
+        bytesOffsets = []
+        bytesOffsets.append(self.file.tell())
+        tam = int.from_bytes(self.file.read(2))
+        c = self.file.read(tam).decode()
+
+        while c != "":
+            print(c.split("|"))
+            bytesOffsets.append(self.file.tell())
+            tam = int.from_bytes(self.file.read(2))
+            c = self.file.read(tam).decode()
+        
+        print(bytesOffsets)
 
     #GerenciadorLED
     def inserirEspacoLED(self, offset_novo_espaco) -> None:
@@ -146,3 +184,13 @@ class GerenciadorArquivo:
             contador += 1
         self.resetPonteiro()
         return contador
+    
+
+a = GerenciadorArquivo("dados.dat")
+a.abirArquivo()
+print(a.lerCabecalho())
+#a.escreverCabecalho(55)
+a.percorrerArquivo()
+#print(a.tamanhoEspaco(4))
+print(a.buscarRegistro("100"))
+a.fecharArquivo()
