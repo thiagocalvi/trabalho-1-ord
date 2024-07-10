@@ -1,5 +1,3 @@
-import Jogo
-
 class GerenciadorArquivo:
     def __init__(self, path_file:str, operations_file:str, header_size=4, record_size_field=2, min_size_fragmentation=10) -> None:
         self.file = path_file
@@ -64,39 +62,6 @@ class GerenciadorArquivo:
         
         return "Registro não encontrado"
 
-    def inserirRegistro(self, dados_registro:str):
-        
-        buffer = dados_registro.encode()
-        tam_registro = len(buffer) + self.RECORD_SIZE_FIELD
-        offset_registro_LED = self.lerCabecalho()
-        tam_registro_LED = self.tamanhoRegistro(offset_registro_LED)
-
-        if tam_registro == tam_registro_LED:
-            self.file.seek(offset_registro_LED+self.RECORD_SIZE_FIELD)
-            self.file.write(buffer)
-        
-        elif tam_registro < tam_registro_LED:
-
-            self.file.seek(offset_registro_LED)
-            self.file.write(tam_registro.to_bytes(self.RECORD_SIZE_FIELD))
-            
-            offset_fragmentacao = offset_registro_LED + tam_registro + self.RECORD_SIZE_FIELD
-            tam_fragmentacao = tam_registro_LED - (tam_registro - self.RECORD_SIZE_FIELD)
-
-            self.file.write(buffer)
-            
-            if tam_fragmentacao >= self.MIN_SIZE_FRAGMENTATION:
-                self.file.seek(offset_fragmentacao)
-                n_buffer = n_buffer.ljust(tam_fragmentacao - self.RECORD_SIZE_FIELD, b'\0')
-                self.file.write(tam_fragmentacao.to_bytes(self.RECORD_SIZE_FIELD))
-                self.file.write(n_buffer)
-                self.inserirEspacoLED(offset_fragmentacao, tam_fragmentacao)
-
-        else:
-            self.file.seek(0, 2)
-            self.file.write(tam_registro.to_bytes(self.HEADER_SIZE))
-            self.file.write(buffer)
-
     def removerRegistro(self, identificador):
         offset, tam_registro = self.buscarRegistro(identificador)[-2:]
         self.file.seek(offset+self.RECORD_SIZE_FIELD)
@@ -104,7 +69,7 @@ class GerenciadorArquivo:
         self.file.write(char_remocao)
         self.inserirEspacoLED(offset, tam_registro)
 
-
+    #Sem utilidade
     def percorrerArquivo(self):
         self.file.seek(self.HEADER_SIZE)
         
