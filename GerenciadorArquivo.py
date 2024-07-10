@@ -1,5 +1,3 @@
-import Jogo
-
 class GerenciadorArquivo:
     def __init__(self, path_file:str, operations_file:str, header_size=4, record_size_field=2, min_size_fragmentation=10) -> None:
         self.file = path_file
@@ -7,6 +5,7 @@ class GerenciadorArquivo:
         self.HEADER_SIZE = header_size
         self.MIN_SIZE_FRAGMENTATION = min_size_fragmentation
         self.RECORD_SIZE_FIELD = record_size_field
+
 
     def abirArquivo(self) -> None:
         try:
@@ -33,11 +32,13 @@ class GerenciadorArquivo:
         return cabecalho
 
     def escreverCabecalho(self, offset:int) -> None:
-        offset = offset.to_bytes(self.HEADER_SIZE)    
+        if type(offset) != bytes:
+            offset = offset.to_bytes(self.HEADER_SIZE)
+
         self.resetPonteiro()
         self.file.write(offset)
 
-    def buscarRegistro(self, indenficador:str):
+    def buscarRegistro(self, indenficador:int):
         
         offset = self.HEADER_SIZE
         
@@ -46,21 +47,23 @@ class GerenciadorArquivo:
         tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
 
         while tam_registro > 0:
-            
+                    
             if self.file.read(1).decode() != "*":
                 self.file.seek(-1, 1)
                 registro = self.file.read(tam_registro).decode()
-                registro = registro.split("|")
-
-                if indenficador in registro:
-                    return [registro[:-1], offset, tam_registro]
-            
-                tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
+                registro = registro.split("|")[:-1]
+    
+                if indenficador == int(registro[0]):
+                    return [registro[:-1], int(offset), int(tam_registro)]
+    
                 offset += tam_registro + self.RECORD_SIZE_FIELD
+                tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
             
-            self.file.seek(-1, 1)
-            tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
-            offset += tam_registro + self.RECORD_SIZE_FIELD
+            else:
+                
+                offset += tam_registro + self.RECORD_SIZE_FIELD
+                self.file.seek(offset)
+                tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
         
         return "Registro não encontrado"
 
@@ -105,6 +108,7 @@ class GerenciadorArquivo:
         self.inserirEspacoLED(offset, tam_registro)
 
 
+    #somente para teste
     def percorrerArquivo(self):
         self.file.seek(self.HEADER_SIZE)
         
@@ -129,7 +133,7 @@ class GerenciadorArquivo:
         
         if line != "":
             opracao = line[0]
-            dados = line[1:]
+            dados = line[1:].strip()
 
             return opracao, dados
         
@@ -137,53 +141,38 @@ class GerenciadorArquivo:
 
 
     #GerenciadorLED
+    #ainda não está funcionando corretemente
     def inserirEspacoLED(self, offset_novo_espaco:int, tam_novo_espaco:int) -> None:
+        offset_LED = self.lerCabecalho()
 
-        cabecalho = int.from_bytes(self.lerCabecalho())
-        
-        if cabecalho == -1:
+        if offset_LED == -1:
             self.file.seek(offset_novo_espaco+3)
-            self.file.write(cabecalho.to_bytes(self.HEADER_SIZE))
+            self.file.write(offset_LED.to_bytes(self.HEADER_SIZE))
             self.escreverCabecalho(offset_novo_espaco)
+
         else:
-            index = cabecalho
-            self.file.seek(index)
-            tam_espaco_atual = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
-        
-            if tam_novo_espaco >= tam_espaco_atual:
-                self.file.seek(offset_novo_espaco+3)
-                self.file.write(index.to_bytes(self.HEADER_SIZE))
-                self.escreverCabecalho(offset_novo_espaco.to_bytes(self.HEADER_SIZE))
-            
-            else:
-                while index != -1:  
-                    self.file.seek(index)
-                    tam_espaco_atual = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
-                    self.file.seek(1, 1)
-                    proximo_offset = int.from_bytes(self.file.read(self.HEADER_SIZE))
-                    if tam_novo_espaco >= tam_espaco_atual:
-                        self.file.seek(offset_novo_espaco)
-                        self.file.seek(3, 1)
-                        self.file.write(proximo_offset.to_bytes(self.HEADER_SIZE))
-                        
-                        self.file.seek(index)
-                        self.file.seek(3, 1)
-                        self.file.write(offset_novo_espaco.to_bytes(self.HEADER_SIZE))
-                        break
-                    elif proximo_offset == -1:
-                        self.file.seek(index)
-                        self.file.seek(3, 1)
-                        self.file.write(offset_novo_espaco.to_bytes(self.HEADER_SIZE))
-                                                    
-                        self.file.seek(offset_novo_espaco)
-                        self.file.seek(3, 1)
-                        end_led = -1
-                        self.file.write(end_led.to_bytes(self.HEADER_SIZE))
-                        break
-                    
-                    index:int = proximo_offset
+            while offset_LED != -1:
+                self.file.seek(offset_LED)
+                tam_atual = int.from_bytes(self.file.write(self.RECORD_SIZE_FIELD))
+                self.file.seek(1,1)
+                next_offset = int.from_bytes(self.file.write(self.HEADER_SIZE))
 
+                if tam_novo_espaco >= tam_atual and next_offset == -1:
+                    self.file.seek(offset_novo_espaco+3)
+                    self.file.write(offset_LED.to_bytes(self.HEADER_SIZE))
+                    self.escreverCabecalho(offset_novo_espaco)
+                    break
 
+                self.file.seek(next_offset)
+                tam_next_offset = int.from_bytes(self.file.seek(self.HEADER_SIZE))
+
+                if tam_novo_espaco >= tam_next_offset:
+                    self.file.seek(offset_novo_espaco+3)
+                    self.file.write(next_offset.to_bytes(self.HEADER_SIZE))
+                    self.file.seek(offset_LED)
+                    self.file.write(offset_novo_espaco.to_bytes(self.HEADER_SIZE))
+                    break
+    
     def removerEspacoLED(self) -> None:
 
         cabeca_led:int = self.lerCabecalho()
@@ -201,28 +190,28 @@ class GerenciadorArquivo:
 
     def imprimirLED(self) -> None:
         # LED -> [offset: 4, tam: 80] -> [offset: 218, tam: 50] -> [offset: 169, tam: 47] -> [offset: -1]
-        #Total: 3 espacos disponiveis
+        # Total: 3 espaços disponíveis
         
-        lista:list[list] = []
-        offset:int = self.lerCabecalho()
+        lista: list[list[int]] = []
+        offset: int = self.lerCabecalho()
+        
+        if offset == -1:
+            return "LED vazia"
         
         while offset != -1:
+            print(offset)
             self.file.seek(offset)
             tam = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
             lista.append([offset, tam])
-            self.file.seek(1)
-            offset:int = int.from_bytes(self.file.read(self.HEADER_SIZE))
-            
-       
-        lista.append([f"offset: {offset}"])
+            next_offset = self.file.read(self.HEADER_SIZE)
+            offset = int.from_bytes(next_offset, signed=True)
         
+        # Imprimir a lista de offsets e tamanhos
         for x in lista:
-            if x[1] != -1:
-                print(f"[offset: {x[0]}, tam: {x[1]}] -> ")
-            else:
-                print(f"[offset: {x[0]}]")
-
-        print(f"\n Total: {self.tamanhoLED()} de espaços disponiveis")
+            print(f"[offset: {x[0]}, tam: {x[1]}] -> ", end="")
+        
+        print("[offset: -1]")
+        print(f"\nTotal: {self.tamanhoLED()} espaços disponíveis")
 
     def tamanhoLED(self) -> int:
         tam_LED:int = 0
@@ -238,20 +227,24 @@ class GerenciadorArquivo:
 
 
 
-a = GerenciadorArquivo("dados.dat", "operacao.txt")
+
+
+
+a = GerenciadorArquivo("3.dat", "operacao.txt")
 a.abirArquivo()
-#print(a.lerCabecalho())
-#a.escreverCabecalho(55)
-#a.percorrerArquivo()
-#print(a.tamanhoEspaco(4))
-#print(a.buscarRegistro("100"))
-print(a.lerArquivoOperacoes())
-print(a.lerArquivoOperacoes())
-print(a.lerArquivoOperacoes())
-print(a.lerArquivoOperacoes())
-print(a.lerArquivoOperacoes())
-print(a.lerArquivoOperacoes())
-print(a.lerArquivoOperacoes())
+# print(a.lerArquivoOperacoes())
+# print(a.lerArquivoOperacoes())
 
+#print(a.buscarRegistro(1))
+#print(a.buscarRegistro(2))
+#print(a.buscarRegistro(3))
 
+a.removerRegistro(1)
+
+a.removerRegistro(2)
+
+a.removerRegistro(3)
+
+# a.initCabecalho()
+# a.imprimirLED()
 a.fecharArquivo()
