@@ -1,2 +1,0 @@
-class Jogo:
-    pass
