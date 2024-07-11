@@ -1,9 +1,9 @@
 import struct
 
 class GerenciadorArquivo:
-    def __init__(self, path_file:str, operations_file:str, header_size=4, record_size_field=2, min_size_fragmentation=10) -> None:
+    def __init__(self, path_file:str, header_size=4, record_size_field=2, min_size_fragmentation=10) -> None:
         self.file = path_file
-        self.operations_file = operations_file
+        self.operations_file = None
         self.HEADER_SIZE = header_size
         self.MIN_SIZE_FRAGMENTATION = min_size_fragmentation
         self.RECORD_SIZE_FIELD = record_size_field
@@ -12,20 +12,28 @@ class GerenciadorArquivo:
     def abirArquivo(self) -> None:
         try:
             self.file = open(self.file, 'r+b')
-            self.operations_file = open(self.operations_file, 'r')
         except:
             raise FileNotFoundError
-        
+
+    def abrirArquivoOperacoes(self, operations_file:str) -> None:
+        try:
+            self.operations_file = open(operations_file, 'r')
+        except:
+            raise FileNotFoundError
+
     def fecharArquivo(self) -> None:
         self.file.close()
-        self.operations_file.close()
     
+    def fecharArquivoOperacoes(self) -> None:
+        self.operations_file.close()
+
     #Finalizado e testado
     def tamanhoRegistro(self, offset) -> int:
         self.file.seek(offset)
         tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
         return tam_registro
     
+    '''
     #Pode ser não utilizado
     def resetPonteiro(self) -> None:
         self.file.seek(0)
@@ -39,7 +47,8 @@ class GerenciadorArquivo:
     def escreverCabecalho(self, offset:int) -> None:
         self.resetPonteiro()
         self.file.write(struct.pack('I', offset))
-
+    '''
+    
     #Finalizado e testado
     def buscarRegistro(self, indenficador:int):
         
@@ -92,14 +101,23 @@ class GerenciadorArquivo:
         tam_registro_LED = self.tamanhoRegistro(offset_registro_LED)
 
         if tam_registro == tam_registro_LED:
-            #Inserir o registor no primeiro espaço disponivel na led os dois
-            #registros tem mesmo tamanho
+            #Inserir o registro no primeiro espaço disponivel na led, 
+            #os dois registros tem mesmo tamanho
+            
+            #remover espaço da LED
+            self.removerEspacoLED()
+
             self.file.seek(offset_registro_LED+self.RECORD_SIZE_FIELD)
             self.file.write(buffer)
+            
         
         elif tam_registro < tam_registro_LED:
             #Inserir o registor no primeiro espaço disponivel na led
             #novo registro é menor e gera um no espaço livre
+            
+            #remover espaço da LED
+            self.removerEspacoLED()
+
             self.file.seek(offset_registro_LED)
             self.file.write(tam_registro.to_bytes(self.RECORD_SIZE_FIELD))
             self.file.write(buffer)
