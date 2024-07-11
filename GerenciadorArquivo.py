@@ -159,7 +159,7 @@ class GerenciadorArquivo:
         return "Fim das operações"
 
 
- 
+
     #GerenciadorLED
 
     #Finalizado e testado
