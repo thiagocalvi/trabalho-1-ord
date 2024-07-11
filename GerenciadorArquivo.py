@@ -283,5 +283,4 @@ class GerenciadorArquivo:
 
 a = GerenciadorArquivo("1.dat", "operacao.txt")
 a.abirArquivo()
-
 a.fecharArquivo()
