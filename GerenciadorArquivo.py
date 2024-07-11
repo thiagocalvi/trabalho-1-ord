@@ -1,4 +1,5 @@
 import struct
+
 class GerenciadorArquivo:
     def __init__(self, path_file:str, operations_file:str, header_size=4, record_size_field=2, min_size_fragmentation=10) -> None:
         self.file = path_file
