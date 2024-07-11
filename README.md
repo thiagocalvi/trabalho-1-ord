@@ -119,3 +119,26 @@ Esses métodos estão logo abaixo do comentário #GerenciadorLED
 * Não têm parâmetros.
 * Contabiliza a quantidade espaços que estão armazenados na LED.
 * Retorna um inteiro
+
+## Definição dos métodos da classe Registro_Jogo
+
+### Registro_Jogo
+Os métodos referentes a classe Registro_Jogo são unicamente para ler um registro do arquivos dados.dat e operação.txt e identificar seus atributos 
+
+**dados_em_string**
+* Não tem parâmetros
+* Retorna o registro na forma de uma string
+
+**identificador**
+* Não tem parâmetros 
+* Obtém-se o identificador do registro, o qual está em seu primeiro campo
+* Retorna o identificador do registro na forma de um inteiro
+
+**dados_em_bytes**
+* Não tem parâmetros
+* Retorna o registro em sua forma binária/bytes
+
+**Atributos**
+* Não tem parâmetros
+* Separa os campos da string e os escreves em relação ao que cada campo representa
+* Sem retorno
