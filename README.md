@@ -59,7 +59,7 @@ Tamanho do espaço reutilizado: 57 bytes
 Local: offset = 6327 bytes (0x18b7)
 ```
 
-### Gerenciamento de Espaços Disponíveis
+### Gerenciamento de Espaços Disponívei
 As alterações que venham a ocorrer no arquivo dados.dat deverão ser persistentes. A remoção de registros será lógica e o espaço resultante da remoção deverá ser inserido na Lista de Espaços Disponíveis (LED). A LED deverá ser mantida no próprio arquivo e os ponteiros da LED devem ser gravados como números inteiros de 4 bytes. O seu programa deverá implementar todos os mecanismos necessários para o gerenciamento da LED e reutilização dos espaços disponíveis utilizando a estratégia pior ajuste (worst-fit).
 
 No momento da inserção de novos registros, a LED deverá ser consultada. Se existir um espaço disponível para a inserção, o novo registro deverá ser inserido nesse espaço. Sobras de espaço resultantes da inserção deverão ser reinseridas na LED, a menos que sejam menores do que um determinado limiar (p.e., 10 bytes). Caso não seja encontrado na LED um espaço adequado para o novo registro, ele deverá ser inserido no final do arquivo.
@@ -74,7 +74,142 @@ Total: 3 espacos disponiveis
 
 ## Definição dos métodos da classe GerenciadorArquivo
 
-### GerenciadorArquivo
+# New version
+## Gerenciador de Arquivo
+
+## Descrição
+
+A classe `GerenciadorArquivo` implementa um gerenciador de arquivo binário que permite manipular registros de forma eficiente e controlar fragmentação por meio de uma Lista de Espaços Disponíveis (LED). A classe permite operações de inserção, busca, remoção de registros, bem como a manipulação da LED.
+
+## Métodos
+
+#### `__init__(self, path_file: str, header_size=4, record_size_field=2, min_size_fragmentation=10) -> None`
+
+Inicializa a classe `GerenciadorArquivo`.
+
+- `path_file` (str): O caminho do arquivo a ser gerenciado.
+- `header_size` (int): O tamanho do cabeçalho do arquivo.
+- `record_size_field` (int): O tamanho do campo que armazena o tamanho dos registros.
+- `min_size_fragmentation` (int): O tamanho mínimo da fragmentação.
+
+#### `abrirArquivo(self) -> None`
+
+Abre o arquivo binário para leitura e escrita em modo binário. Lança uma exceção `FileNotFoundError` se o arquivo não for encontrado.
+
+#### `abrirArquivoOperacoes(self, operations_file: str) -> None`
+
+Abre o arquivo de operações em modo de leitura. Lança uma exceção `FileNotFoundError` se o arquivo não for encontrado.
+
+- `operations_file` (str): O caminho do arquivo de operações.
+
+#### `fecharArquivo(self) -> None`
+
+Fecha o arquivo binário aberto.
+
+#### `fecharArquivoOperacoes(self) -> None`
+
+Fecha o arquivo de operações aberto.
+
+#### `tamanhoRegistro(self, offset: int) -> int`
+
+Retorna o tamanho do registro no offset especificado.
+
+- `offset` (int): O offset do registro no arquivo.
+- Funciona posicionando o ponteiro de leitura no offset fornecido e lendo o tamanho do registro a partir daí.
+
+#### `buscarRegistro(self, identificador: int) -> Union[list, str]`
+
+Busca um registro pelo identificador.
+
+- `identificador` (int): O identificador do registro a ser buscado.
+- Percorre o arquivo a partir do cabeçalho, lê o tamanho de cada registro e verifica se o registro não está marcado como removido.
+- Se encontrar o registro, retorna uma lista contendo os dados do registro, offset e tamanho.
+- Retorna "Registro não encontrado" se não encontrar o registro.
+
+#### `inserirRegistro(self, dados_registro: str) -> str`
+
+Insere um novo registro no arquivo.
+
+- `dados_registro` (str): Os dados do registro a ser inserido.
+- Verifica se há espaço disponível na LED para inserir o registro. Caso contrário, insere no final do arquivo.
+- Se o espaço disponível na LED for menor que o necessário, cria um novo espaço de fragmentação.
+- Retorna uma mensagem indicando se o registro foi inserido no final do arquivo ou em um espaço disponível na LED.
+
+#### `removerRegistro(self, identificador: int) -> str`
+
+Remove um registro pelo identificador.
+
+- `identificador` (int): O identificador do registro a ser removido.
+- Busca o registro pelo identificador. Se encontrado, marca o registro como removido.
+- Adiciona o espaço do registro removido à LED.
+- Retorna uma mensagem indicando se o registro foi removido ou se não foi encontrado no arquivo.
+
+#### `percorrerArquivo(self) -> None`
+
+Percorre e imprime os registros do arquivo para fins de teste.
+
+- Lê e imprime cada registro a partir do cabeçalho do arquivo até o final, mostrando os offsets dos registros.
+
+#### `lerArquivoOperacoes(self) -> Tuple[str, str]`
+
+Lê uma linha do arquivo de operações.
+
+- Retorna uma tupla contendo a operação (primeiro caractere da linha) e os dados (restante da linha).
+- Retorna "Fim das operações" se alcançar o final do arquivo de operações.
+
+#### `inserirEspacoLED(self, offset_novo_espaco: int, tam_novo_espaco: int) -> str`
+
+Insere um novo espaço na LED.
+
+- `offset_novo_espaco` (int): O offset do novo espaço.
+- `tam_novo_espaco` (int): O tamanho do novo espaço.
+- Verifica se a LED está vazia. Se estiver, insere o novo espaço como o primeiro.
+- Caso contrário, insere o novo espaço na posição correta na LED, mantendo a ordem crescente de tamanho.
+- Retorna uma mensagem indicando em qual caso a inserção ocorreu (vazia, maior, meio ou final da LED).
+
+#### `removerEspacoLED(self) -> str`
+
+Remove o primeiro espaço disponível na LED.
+
+- Atualiza o cabeçalho do arquivo para apontar para o próximo espaço disponível na LED.
+- Retorna uma mensagem indicando que o espaço foi removido ou que a LED está vazia.
+
+#### `imprimirLED(self) -> str`
+
+Imprime a LED e o número de espaços disponíveis.
+
+- Percorre a LED a partir do cabeçalho e coleta os offsets e tamanhos de cada espaço disponível.
+- Imprime a lista de espaços disponíveis e o total de espaços.
+- Retorna uma mensagem indicando o estado da LED.
+
+#### `tamanhoLED(self) -> int`
+
+Retorna o número de espaços disponíveis na LED.
+
+- Percorre a LED e conta o número de espaços disponíveis.
+- Retorna o total de espaços na LED.
+
+## Exemplo de Uso
+
+```python
+a = GerenciadorArquivo("1.dat")
+a.abrirArquivo()
+
+print(a.buscarRegistro(22))
+a.inserirRegistro("144|The Sims|2000|Life simulation|Electronic Arts|PC|")
+print(a.removerRegistro(99))
+print(a.removerRegistro(230))
+a.inserirRegistro("181|Pac-Man|1980|Maze|Namco|Arcade|")
+a.inserirRegistro("144|The Sims|2000|Life simulation|Electronic Arts|PC|")
+
+print(a.imprimirLED())
+
+a.fecharArquivo()
+```
+
+# Old version
+
+## GerenciadorArquivo
 
 **lerCabecalho:**
 * Não têm parâmetros.
