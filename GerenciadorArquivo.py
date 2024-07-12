@@ -70,19 +70,20 @@ class GerenciadorArquivo:
     
                 offset += tam_registro + self.RECORD_SIZE_FIELD
                 tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
-            
+                
             else:
                 
                 offset += tam_registro + self.RECORD_SIZE_FIELD
                 self.file.seek(offset)
                 tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
-        
+                
         return "Registro não encontrado"
 
 
     #Finalizado e não testado, na teoria é para funcionar
     def inserirRegistro(self, dados_registro:str):
         
+        n_buffer = b''
         buffer = dados_registro.encode()
         tam_registro = len(buffer)
         self.file.seek(0)
@@ -123,27 +124,31 @@ class GerenciadorArquivo:
             self.file.write(buffer)
             
             offset_fragmentacao = offset_registro_LED + tam_registro + self.RECORD_SIZE_FIELD
-            tam_fragmentacao = tam_registro_LED - tam_registro
+            tam_fragmentacao = tam_registro_LED - tam_registro - self.RECORD_SIZE_FIELD
 
             
             self.file.seek(offset_fragmentacao)
-            n_buffer = n_buffer.ljust(tam_fragmentacao + self.RECORD_SIZE_FIELD, b'\0')
-            self.file.write(n_buffer)
+            n = n_buffer.ljust(tam_fragmentacao, b'\0')
+            self.file.write(n)
 
             if tam_fragmentacao >= self.MIN_SIZE_FRAGMENTATION:
                 self.file.seek(offset_fragmentacao)
                 self.file.write(tam_fragmentacao.to_bytes(self.RECORD_SIZE_FIELD))
+                self.file.write("*".encode())
                 self.inserirEspacoLED(offset_fragmentacao, tam_fragmentacao)
 
 
     #Finalizado e testado
     def removerRegistro(self, identificador):
         offset, tam_registro = self.buscarRegistro(identificador)[-2:]
-        self.file.seek(offset+2)
-        char_remocao = "*".encode()
-        self.file.write(char_remocao)
-        self.inserirEspacoLED(offset, tam_registro)
+        if type(offset) == int:
+            self.file.seek(offset+2)
+            char_remocao = "*".encode()
+            self.file.write(char_remocao)
+            self.inserirEspacoLED(offset, tam_registro)
 
+        else:
+            return "Registro não está no arquivo"
 
     #somente para teste
     def percorrerArquivo(self):
@@ -299,7 +304,21 @@ class GerenciadorArquivo:
         return tam_LED
 
 
-a = GerenciadorArquivo("1.dat", "operacao.txt")
+a = GerenciadorArquivo("3.dat")
 a.abirArquivo()
+#print(a.buscarRegistro(181))
+print(a.buscarRegistro(3))
+#print(a.removerRegistro(3))
+
+#print(a.buscarRegistro(3))
+
+#a.inserirRegistro("181|Pac-Man|1980|Maze|Namco|Arcade|")
+#a.imprimirLED()
+#print(a.buscarRegistro(181))
+#quando busca o 3 da erro
+#print(a.buscarRegistro(3))
+
+
+
 a.fecharArquivo()
 
