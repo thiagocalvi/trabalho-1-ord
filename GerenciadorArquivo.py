@@ -304,21 +304,17 @@ class GerenciadorArquivo:
         return tam_LED
 
 
-a = GerenciadorArquivo("3.dat")
+a = GerenciadorArquivo("9.dat")
 a.abirArquivo()
-#print(a.buscarRegistro(181))
-print(a.buscarRegistro(3))
-#print(a.removerRegistro(3))
 
-#print(a.buscarRegistro(3))
+print(a.buscarRegistro(22))
+a.inserirRegistro("144|The Sims|2000|Life simulation|Electronic Arts|PC|")
+print(a.removerRegistro(99))
+print(a.removerRegistro(230))
+a.inserirRegistro("181|Pac-Man|1980|Maze|Namco|Arcade|")
+a.inserirRegistro("144|The Sims|2000|Life simulation|Electronic Arts|PC|")
 
-#a.inserirRegistro("181|Pac-Man|1980|Maze|Namco|Arcade|")
-#a.imprimirLED()
-#print(a.buscarRegistro(181))
-#quando busca o 3 da erro
-#print(a.buscarRegistro(3))
-
-
+print(a.imprimirLED())
 
 a.fecharArquivo()
 
