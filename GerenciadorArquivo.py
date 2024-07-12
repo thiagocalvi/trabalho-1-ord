@@ -304,7 +304,7 @@ class GerenciadorArquivo:
         return tam_LED
 
 
-a = GerenciadorArquivo("9.dat")
+a = GerenciadorArquivo("1.dat")
 a.abirArquivo()
 
 print(a.buscarRegistro(22))
