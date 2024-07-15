@@ -1,7 +1,8 @@
 import struct
 
+
 class GerenciadorArquivo:
-    def __init__(self, path_file:str, header_size=4, record_size_field=2, min_size_fragmentation=10) -> None:
+    def __init__(self, path_file, header_size=4, record_size_field=2, min_size_fragmentation=10) :
         self.file = path_file
         self.operations_file = None
         self.HEADER_SIZE = header_size
@@ -9,7 +10,7 @@ class GerenciadorArquivo:
         self.RECORD_SIZE_FIELD = record_size_field
 
 
-    def abirArquivo(self) -> None:
+    def abrirArquivo(self) -> None:
         try:
             self.file = open(self.file, 'r+b')
         except:
@@ -179,14 +180,14 @@ class GerenciadorArquivo:
 
             return opracao, dados
         
-        return "Fim das operações"
+        return "Fim das operações","Acabou"
 
 
 
     #GerenciadorLED
 
     #Finalizado e testado
-    def inserirEspacoLED(self, offset_novo_espaco:int, tam_novo_espaco:int) -> str:
+    def inserirEspacoLED(self, offset_novo_espaco:int, tam_novo_espaco:int):
             self.file.seek(0)
             cabecalho = self.file.read(4)
             end_LED = b'\xff\xff\xff\xff'
@@ -243,7 +244,7 @@ class GerenciadorArquivo:
                     return "Caso 4: O novo espaço será inserido no final da LED"
 
     #Finalizado e testado
-    def removerEspacoLED(self) -> None:
+    def removerEspacoLED(self) -> str:
 
         self.file.seek(0)
         offset = self.file.read(self.HEADER_SIZE)
@@ -262,7 +263,7 @@ class GerenciadorArquivo:
             return "A LED está vazia!"
 
     #Finalizado e testado
-    def imprimirLED(self) -> None:
+    def imprimirLED(self) :
         # LED -> [offset: 4, tam: 80] -> [offset: 218, tam: 50] -> [offset: 169, tam: 47] -> [offset: -1]
         # Total: 3 espaços disponíveis
         
@@ -303,9 +304,9 @@ class GerenciadorArquivo:
 
         return tam_LED
 
-
-a = GerenciadorArquivo("1.dat")
-a.abirArquivo()
+'''
+a = GerenciadorArquivo("Dados.dat")
+a.abrirArquivo()
 
 print(a.buscarRegistro(22))
 a.inserirRegistro("144|The Sims|2000|Life simulation|Electronic Arts|PC|")
@@ -317,4 +318,4 @@ a.inserirRegistro("144|The Sims|2000|Life simulation|Electronic Arts|PC|")
 print(a.imprimirLED())
 
 a.fecharArquivo()
-
+'''
