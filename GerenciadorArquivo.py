@@ -10,7 +10,7 @@ class GerenciadorArquivo:
         self.RECORD_SIZE_FIELD = record_size_field
 
 
-    def abirArquivo(self) -> None:
+    def abrirArquivo(self) -> None:
         try:
             self.file = open(self.path_file, 'r+b')
         except:
@@ -35,23 +35,24 @@ class GerenciadorArquivo:
         return tam_registro
     
     #Finalizado e testado
-    def buscarRegistro(self, indenficador:int):
+    def buscarRegistro(self, identificador:int):
         
         offset = self.HEADER_SIZE
         
         self.file.seek(offset)
 
         tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
-
         while tam_registro != 0:
                     
             if self.file.read(1).decode() != "*":
                 self.file.seek(-1, 1)
                 registro = self.file.read(tam_registro).decode()
+                registro_sem_split = registro
                 registro = registro.split("|")[:-1]
     
-                if indenficador == int(registro[0]):
-                    return [registro[:-1], int(offset), int(tam_registro)]
+                if identificador == int(registro[0]):
+
+                    return [registro[:-1], registro_sem_split, int(offset), int(tam_registro)]
     
                 offset += tam_registro + self.RECORD_SIZE_FIELD
                 tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
@@ -62,16 +63,22 @@ class GerenciadorArquivo:
                 self.file.seek(offset)
                 tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
             
-        return "Registro não encontrado"
-
-    #Finalizado testado
-    def inserirRegistro(self, dados_registro:str) -> str:
         
+
+        return "Erro: Registro não encontrado\n", 0
+
+    #Finalizado e testado
+    def inserirRegistro(self, dados_registro:str) -> str:
+        # print(dados_registro)
+        dados = dados_registro.split("|")
+
         n_buffer = b''
         buffer = dados_registro.encode()
         tam_registro = len(buffer)
         self.file.seek(0)
 
+        print(f"Inserção do registro de chave \"{dados[0]}\" ({tam_registro} bytes)")
+        
         offset_registro_LED = self.file.read(self.HEADER_SIZE)
 
         if offset_registro_LED == b'\xff\xff\xff\xff':
@@ -79,11 +86,14 @@ class GerenciadorArquivo:
             self.file.seek(0, 2)
             self.file.write(tam_registro.to_bytes(self.RECORD_SIZE_FIELD))
             self.file.write(buffer)
+            
+            print("Local: fim do arquivo \n")
             return "Registro inserido no final do arquivo"
 
 
         offset_registro_LED = struct.unpack("I", offset_registro_LED)[0]
         tam_registro_LED = self.tamanhoRegistro(offset_registro_LED)
+
 
         if tam_registro == tam_registro_LED:
             #Inserir o registro no primeiro espaço disponivel na led, 
@@ -94,6 +104,9 @@ class GerenciadorArquivo:
 
             self.file.seek(offset_registro_LED+self.RECORD_SIZE_FIELD)
             self.file.write(buffer)
+            
+            print(f"Tamanho do espaço reutilizado {tam_registro_LED} (Sobra de {tam_registro_LED - tam_registro} bytes)")
+            print(f"Local: offset {offset_registro_LED} bytes\n")
             
             return f"Registro inserido no offset: {offset_registro_LED}, de tamanho {tam_registro} bytes"
             
@@ -117,45 +130,66 @@ class GerenciadorArquivo:
             n = n_buffer.ljust(tam_fragmentacao, b'\0')
             self.file.write(n)
 
+            print(f"Tamanho do espaço reutilizado {tam_registro_LED} bytes (Sobra de {tam_fragmentacao} bytes)")
+            print(f"Local: offset {offset_registro_LED} bytes\n")
+
+
             if tam_fragmentacao >= self.MIN_SIZE_FRAGMENTATION:
                 self.file.seek(offset_fragmentacao)
                 self.file.write(tam_fragmentacao.to_bytes(self.RECORD_SIZE_FIELD))
                 self.file.write("*".encode())
                 self.inserirEspacoLED(offset_fragmentacao, tam_fragmentacao)
 
-            return f"Registro inserido no offset: {offset_registro_LED}, de tamanho {tam_registro} bytes"
 
+
+            return f"Registro inserido no offset: {offset_registro_LED}, de tamanho {tam_registro} bytes"
+        
+        else:
+            #Inserir registro no final do arquivo
+            self.file.seek(0, 2)
+            self.file.write(tam_registro.to_bytes(self.RECORD_SIZE_FIELD))
+            self.file.write(buffer)
+            
+            print("Local: fim do arquivo \n")
+            return "Registro inserido no final do arquivo"
+    
     #Finalizado e testado
     def removerRegistro(self, identificador) -> str:
+        print(f"Remoção do registro de chave \"{identificador}\"")
         offset, tam_registro = self.buscarRegistro(identificador)[-2:]
+        
         if type(offset) == int:
             self.file.seek(offset+2)
             char_remocao = "*".encode()
             self.file.write(char_remocao)
             self.inserirEspacoLED(offset, tam_registro)
+            print(f"Registro removido! ({tam_registro} bytes)")
+            print(f"Local: offset = {offset} bytes\n")
+
             return f"Registro removido no offset: {offset}, de tamanho {tam_registro} bytes"
 
         else:
+            print("Erro: Registro não encontrado!\n")
             return "Registro não encontrado no arquivo"
 
 
-    #Manipulação do arquivo de operações
+    #Leitura do arquivo de operações
     def lerArquivoOperacoes(self):
-            
+        
+        
         line = self.operations_file.readline()
-        
-        if line != "":
-            opracao = line[0]
-            dados = line[1:].strip()
 
-            return opracao, dados
+        if line != "": 
+            dados = line.split(maxsplit=1)
+            operacao = dados[0]
+            dados[1] = dados[1].rstrip('\n')   
+            return operacao, dados
         
-        return "Fim das operações"
-
+        
+        return "Fim das operações", "Acabou"
 
 
     #GerenciadorLED
-
     #Finalizado e testado
     def inserirEspacoLED(self, offset_novo_espaco:int, tam_novo_espaco:int) -> None:
             self.file.seek(0)
@@ -242,7 +276,7 @@ class GerenciadorArquivo:
         offset = self.file.read(self.HEADER_SIZE)
         
         if offset == b'\xff\xff\xff\xff':
-            return "LED vazia"
+            print("LED vazia")
         
         while offset != b'\xff\xff\xff\xff':
             offset = struct.unpack("I", offset)[0]
@@ -273,19 +307,4 @@ class GerenciadorArquivo:
             tam_LED += 1
 
         return tam_LED
-
-
-a = GerenciadorArquivo("4.dat")
-a.abirArquivo()
-
-print(a.buscarRegistro(22))
-print(a.inserirRegistro("144|The Sims|2000|Life simulation|Electronic Arts|PC|"))
-print(a.removerRegistro(99))
-print(a.removerRegistro(230))
-print(a.inserirRegistro("181|Pac-Man|1980|Maze|Namco|Arcade|"))
-print(a.inserirRegistro("144|The Sims|2000|Life simulation|Electronic Arts|PC|"))
-
-print(a.imprimirLED())
-
-a.fecharArquivo()
 
