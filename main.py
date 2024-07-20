@@ -1,4 +1,3 @@
-#Criar o fluxo de execução do programa aqui#Criar o fluxo de execução do programa aqui
 import sys
 from GerenciadorArquivo import GerenciadorArquivo
 
@@ -9,7 +8,7 @@ def main():
         sys.exit()
     
     else:
-        gerenciador = GerenciadorArquivo('dados.dat')
+        gerenciador = GerenciadorArquivo('1.dat')
         gerenciador.abrirArquivo()
 
         if len(sys.argv) == 2 and sys.argv[1] == "-p":

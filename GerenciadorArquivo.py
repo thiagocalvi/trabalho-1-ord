@@ -9,7 +9,6 @@ class GerenciadorArquivo:
         self.MIN_SIZE_FRAGMENTATION = min_size_fragmentation
         self.RECORD_SIZE_FIELD = record_size_field
 
-
     def abrirArquivo(self) -> None:
         try:
             self.file = open(self.path_file, 'r+b')
@@ -28,13 +27,11 @@ class GerenciadorArquivo:
     def fecharArquivoOperacoes(self) -> None:
         self.operations_file.close()
 
-    #Finalizado e testado
     def tamanhoRegistro(self, offset) -> int:
         self.file.seek(offset)
         tam_registro = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
         return tam_registro
     
-    #Finalizado e testado
     def buscarRegistro(self, identificador:int):
         
         offset = self.HEADER_SIZE
@@ -67,9 +64,7 @@ class GerenciadorArquivo:
 
         return "Erro: Registro não encontrado\n", 0
 
-    #Finalizado e testado
     def inserirRegistro(self, dados_registro:str) -> str:
-        # print(dados_registro)
         dados = dados_registro.split("|")
 
         n_buffer = b''
@@ -96,10 +91,6 @@ class GerenciadorArquivo:
 
 
         if tam_registro == tam_registro_LED:
-            #Inserir o registro no primeiro espaço disponivel na led, 
-            #os dois registros tem mesmo tamanho
-            
-            #remover espaço da LED
             self.removerEspacoLED()
 
             self.file.seek(offset_registro_LED+self.RECORD_SIZE_FIELD)
@@ -108,14 +99,10 @@ class GerenciadorArquivo:
             print(f"Tamanho do espaço reutilizado {tam_registro_LED} (Sobra de {tam_registro_LED - tam_registro} bytes)")
             print(f"Local: offset {offset_registro_LED} bytes\n")
             
-            return f"Registro inserido no offset: {offset_registro_LED}, de tamanho {tam_registro} bytes"
+            #return f"Registro inserido no offset: {offset_registro_LED}, de tamanho {tam_registro} bytes"
             
         
         elif tam_registro < tam_registro_LED:
-            #Inserir o registor no primeiro espaço disponivel na led
-            #novo registro é menor e gera um no espaço livre
-            
-            #remover espaço da LED
             self.removerEspacoLED()
 
             self.file.seek(offset_registro_LED)
@@ -142,16 +129,15 @@ class GerenciadorArquivo:
 
 
 
-            return f"Registro inserido no offset: {offset_registro_LED}, de tamanho {tam_registro} bytes"
+            #return f"Registro inserido no offset: {offset_registro_LED}, de tamanho {tam_registro} bytes"
         
         else:
-            #Inserir registro no final do arquivo
             self.file.seek(0, 2)
             self.file.write(tam_registro.to_bytes(self.RECORD_SIZE_FIELD))
             self.file.write(buffer)
             
             print("Local: fim do arquivo \n")
-            return "Registro inserido no final do arquivo"
+            #return "Registro inserido no final do arquivo"
     
     #Finalizado e testado
     def removerRegistro(self, identificador) -> str:
@@ -166,11 +152,11 @@ class GerenciadorArquivo:
             print(f"Registro removido! ({tam_registro} bytes)")
             print(f"Local: offset = {offset} bytes\n")
 
-            return f"Registro removido no offset: {offset}, de tamanho {tam_registro} bytes"
+            #return f"Registro removido no offset: {offset}, de tamanho {tam_registro} bytes"
 
         else:
             print("Erro: Registro não encontrado!\n")
-            return "Registro não encontrado no arquivo"
+            #return "Registro não encontrado no arquivo"
 
 
     #Leitura do arquivo de operações
@@ -247,7 +233,6 @@ class GerenciadorArquivo:
                     self.file.write(end_LED)
                     # somente para debug return "Caso 4: O novo espaço será inserido no final da LED"
 
-    #Finalizado e testado
     def removerEspacoLED(self) -> str:
 
         self.file.seek(0)
