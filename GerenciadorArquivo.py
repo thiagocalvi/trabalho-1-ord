@@ -97,7 +97,7 @@ class GerenciadorArquivo:
             self.file.write(buffer)
             
             print(f"Tamanho do espaço reutilizado {tam_registro_LED} (Sobra de {tam_registro_LED - tam_registro} bytes)")
-            print(f"Local: offset {offset_registro_LED} bytes\n")
+            print(f"Local: offset {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
             
             #return f"Registro inserido no offset: {offset_registro_LED}, de tamanho {tam_registro} bytes"
             
@@ -118,7 +118,7 @@ class GerenciadorArquivo:
             self.file.write(n)
 
             print(f"Tamanho do espaço reutilizado {tam_registro_LED} bytes (Sobra de {tam_fragmentacao} bytes)")
-            print(f"Local: offset {offset_registro_LED} bytes\n")
+            print(f"Local: offset {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
 
 
             if tam_fragmentacao >= self.MIN_SIZE_FRAGMENTATION:
@@ -139,7 +139,6 @@ class GerenciadorArquivo:
             print("Local: fim do arquivo \n")
             #return "Registro inserido no final do arquivo"
     
-    #Finalizado e testado
     def removerRegistro(self, identificador) -> str:
         print(f"Remoção do registro de chave \"{identificador}\"")
         offset, tam_registro = self.buscarRegistro(identificador)[-2:]
@@ -176,7 +175,6 @@ class GerenciadorArquivo:
 
 
     #GerenciadorLED
-    #Finalizado e testado
     def inserirEspacoLED(self, offset_novo_espaco:int, tam_novo_espaco:int) -> None:
             self.file.seek(0)
             cabecalho = self.file.read(4)
@@ -251,7 +249,6 @@ class GerenciadorArquivo:
         else:
             return "A LED está vazia!"
 
-    #Finalizado e testado
     def imprimirLED(self) -> str:
         # LED -> [offset: 4, tam: 80] -> [offset: 218, tam: 50] -> [offset: 169, tam: 47] -> [offset: -1]
         # Total: 3 espaços disponíveis
@@ -279,7 +276,6 @@ class GerenciadorArquivo:
         print("[offset: -1]")
         print(f"\nTotal: {self.tamanhoLED()} espaços disponíveis")
 
-    #Finalizada e testado
     def tamanhoLED(self) -> int:
         tam_LED:int = 0
         self.file.seek(0)

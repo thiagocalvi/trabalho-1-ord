@@ -1,4 +1,5 @@
 import sys
+import os
 from GerenciadorArquivo import GerenciadorArquivo
 
 def main():
@@ -6,11 +7,15 @@ def main():
     if len(sys.argv) < 2:
         print("Argumentos Insuficientes")
         sys.exit()
-    
-    else:
-        gerenciador = GerenciadorArquivo('1.dat')
-        gerenciador.abrirArquivo()
 
+    if not os.path.exists("./dados.dat"):
+        print("Erro: Arquivo dados.dat não encontrado")
+        sys.exit()
+
+    else:
+        gerenciador = GerenciadorArquivo('dados.dat')
+        gerenciador.abrirArquivo()
+        
         if len(sys.argv) == 2 and sys.argv[1] == "-p":
             gerenciador.imprimirLED()
             gerenciador.fecharArquivo()
