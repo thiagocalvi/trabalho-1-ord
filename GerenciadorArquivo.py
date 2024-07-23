@@ -96,10 +96,8 @@ class GerenciadorArquivo:
             self.file.seek(offset_registro_LED+self.RECORD_SIZE_FIELD)
             self.file.write(buffer)
             
-            print(f"Tamanho do espaço reutilizado {tam_registro_LED} (Sobra de {tam_registro_LED - tam_registro} bytes)")
-            print(f"Local: offset {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
-            
-            #return f"Registro inserido no offset: {offset_registro_LED}, de tamanho {tam_registro} bytes"
+            print(f"Tamanho do espaço reutilizado: {tam_registro_LED} (Sobra de {tam_registro_LED - tam_registro} bytes)")
+            print(f"Local: offset = {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
             
         
         elif tam_registro < tam_registro_LED:
@@ -117,8 +115,8 @@ class GerenciadorArquivo:
             n = n_buffer.ljust(tam_fragmentacao, b'\0')
             self.file.write(n)
 
-            print(f"Tamanho do espaço reutilizado {tam_registro_LED} bytes (Sobra de {tam_fragmentacao} bytes)")
-            print(f"Local: offset {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
+            print(f"Tamanho do espaço reutilizado: {tam_registro_LED} bytes (Sobra de {tam_fragmentacao} bytes)")
+            print(f"Local: offset = {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
 
 
             if tam_fragmentacao >= self.MIN_SIZE_FRAGMENTATION:
@@ -126,10 +124,6 @@ class GerenciadorArquivo:
                 self.file.write(tam_fragmentacao.to_bytes(self.RECORD_SIZE_FIELD))
                 self.file.write("*".encode())
                 self.inserirEspacoLED(offset_fragmentacao, tam_fragmentacao)
-
-
-
-            #return f"Registro inserido no offset: {offset_registro_LED}, de tamanho {tam_registro} bytes"
         
         else:
             self.file.seek(0, 2)
@@ -137,7 +131,6 @@ class GerenciadorArquivo:
             self.file.write(buffer)
             
             print("Local: fim do arquivo \n")
-            #return "Registro inserido no final do arquivo"
     
     def removerRegistro(self, identificador) -> str:
         print(f"Remoção do registro de chave \"{identificador}\"")
@@ -149,13 +142,10 @@ class GerenciadorArquivo:
             self.file.write(char_remocao)
             self.inserirEspacoLED(offset, tam_registro)
             print(f"Registro removido! ({tam_registro} bytes)")
-            print(f"Local: offset = {offset} bytes\n")
-
-            #return f"Registro removido no offset: {offset}, de tamanho {tam_registro} bytes"
+            print(f"Local: offset = {offset} bytes ({hex(offset)})\n")
 
         else:
             print("Erro: Registro não encontrado!\n")
-            #return "Registro não encontrado no arquivo"
 
 
     #Leitura do arquivo de operações
