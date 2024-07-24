@@ -131,9 +131,12 @@ class GerenciadorArquivo:
         offset, tam_registro = self.buscarRegistro(identificador)[-2:]
         
         if type(offset) == int:
+            n_buffer = b'\0'
             self.file.seek(offset+2)
             char_remocao = "*".encode()
             self.file.write(char_remocao)
+            n_buffer = n_buffer.ljust(tam_registro - 1, b'\0')
+            self.file.write(n_buffer)
             self.inserirEspacoLED(offset, tam_registro)
             print(f"Registro removido! ({tam_registro} bytes)")
             print(f"Local: offset = {offset} bytes ({hex(offset)})\n")
@@ -152,7 +155,6 @@ class GerenciadorArquivo:
             dados = line.split(maxsplit=1)
             operacao = dados[0]
             dados[1] = dados[1].rstrip('\n')   
-            #print(f"Operação: {operacao}, Dados: {dados}"  )
             return operacao, dados
         
         
@@ -171,12 +173,10 @@ class GerenciadorArquivo:
                 self.file.write(struct.pack("I", offset_novo_espaco))
                 self.file.seek(offset_novo_espaco+3)
                 self.file.write(end_LED)
-                # somente para debug return "Caso 1: LED está vazia"
             
             else:
                 offset_LED = struct.unpack("I", cabecalho)[0]
                 self.file.seek(offset_LED)
-                #tam_espaco_LED = struct.unpack("H", self.file.read(2))[0]
                 tam_espaco_LED = int.from_bytes(self.file.read(2))
                 self.file.seek(1,1)
                 next_offset_LED = self.file.read(4)
@@ -187,8 +187,7 @@ class GerenciadorArquivo:
                     self.file.write(struct.pack("I", offset_novo_espaco))
                     self.file.seek(offset_novo_espaco+3)
                     self.file.write(struct.pack("I", offset_LED))
-                    # somente para debug return "Caso 2: O novo espaço é maior que o primeiro espaço da LED"
-
+                    
 
                 offset_LED = cabecalho
 
@@ -202,8 +201,7 @@ class GerenciadorArquivo:
                         self.file.write(next_offset_LED)
                         self.file.seek(struct.unpack("I", offset_LED)[0]+3)
                         self.file.write(struct.pack("I", offset_novo_espaco))
-                        # somente para debug return "Caso 3: O novo espaço será inserido no meio da LED"
-
+                        
                     offset_LED = next_offset_LED
                     self.file.seek(struct.unpack("I", offset_LED)[0]+3)
                     next_offset_LED = self.file.read(4)
@@ -214,8 +212,7 @@ class GerenciadorArquivo:
                     self.file.write(struct.pack("I", offset_novo_espaco))
                     self.file.seek(offset_novo_espaco+3)
                     self.file.write(end_LED)
-                    # somente para debug return "Caso 4: O novo espaço será inserido no final da LED"
-
+                    
     def removerEspacoLED(self) -> str:
 
         self.file.seek(0)
