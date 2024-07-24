@@ -27,7 +27,6 @@ def main():
             while operacao != "Fim das operações" and dados != "Acabou":
                 
                 identificador = int(dados[1].split("|")[0])
-    
                 match (operacao):
                     
                     case 'b':
@@ -36,7 +35,9 @@ def main():
                         if retornoFuncao[1] == 0: 
                             print(retornoFuncao[0])
                         else:
-                            print(f"{retornoFuncao[1]} ({retornoFuncao[3]} bytes)\n")
+                            print(f"{retornoFuncao[1]} ({retornoFuncao[3]} bytes)")
+                            print(f"Local: offset = {retornoFuncao[2]} bytes ({hex(retornoFuncao[2])})\n")
+
 
                     case 'i':
                         gerenciador.inserirRegistro(dados[1])
@@ -46,8 +47,8 @@ def main():
 
                 operacao, dados = gerenciador.lerArquivoOperacoes()
             
-            gerenciador.fecharArquivo()
             gerenciador.fecharArquivoOperacoes()
+            gerenciador.fecharArquivo()
 
 if __name__ == '__main__':
     main()

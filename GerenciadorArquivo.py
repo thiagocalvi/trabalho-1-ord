@@ -46,7 +46,7 @@ class GerenciadorArquivo:
                 registro = self.file.read(tam_registro).decode()
                 registro_sem_split = registro
                 registro = registro.split("|")[:-1]
-    
+                
                 if identificador == int(registro[0]):
 
                     return [registro[:-1], registro_sem_split, int(offset), int(tam_registro)]
@@ -67,7 +67,7 @@ class GerenciadorArquivo:
     def inserirRegistro(self, dados_registro:str) -> str:
         dados = dados_registro.split("|")
 
-        n_buffer = b''
+        n_buffer = b'\0'
         buffer = dados_registro.encode()
         tam_registro = len(buffer)
         self.file.seek(0)
@@ -96,7 +96,7 @@ class GerenciadorArquivo:
             self.file.seek(offset_registro_LED+self.RECORD_SIZE_FIELD)
             self.file.write(buffer)
             
-            print(f"Tamanho do espaço reutilizado: {tam_registro_LED} (Sobra de {tam_registro_LED - tam_registro} bytes)")
+            print(f"Tamanho do espaço reutilizado: {tam_registro_LED}")
             print(f"Local: offset = {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
             
         
@@ -112,8 +112,8 @@ class GerenciadorArquivo:
 
             
             self.file.seek(offset_fragmentacao)
-            n = n_buffer.ljust(tam_fragmentacao, b'\0')
-            self.file.write(n)
+            n_buffer = n_buffer.ljust(tam_fragmentacao+self.RECORD_SIZE_FIELD, b'\0')
+            self.file.write(n_buffer)
 
             print(f"Tamanho do espaço reutilizado: {tam_registro_LED} bytes (Sobra de {tam_fragmentacao} bytes)")
             print(f"Local: offset = {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
@@ -158,6 +158,7 @@ class GerenciadorArquivo:
             dados = line.split(maxsplit=1)
             operacao = dados[0]
             dados[1] = dados[1].rstrip('\n')   
+            #print(f"Operação: {operacao}, Dados: {dados}"  )
             return operacao, dados
         
         
