@@ -89,42 +89,36 @@ class GerenciadorArquivo:
         offset_registro_LED = struct.unpack("I", offset_registro_LED)[0]
         tam_registro_LED = self.tamanhoRegistro(offset_registro_LED)
 
-
-        if tam_registro == tam_registro_LED:
+        if tam_registro <= tam_registro_LED:
             self.removerEspacoLED()
 
-            self.file.seek(offset_registro_LED+self.RECORD_SIZE_FIELD)
-            self.file.write(buffer)
-            
-            print(f"Tamanho do espaço reutilizado: {tam_registro_LED}")
-            print(f"Local: offset = {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
-            
-        
-        elif tam_registro < tam_registro_LED:
-            self.removerEspacoLED()
-
-            self.file.seek(offset_registro_LED)
-            self.file.write(tam_registro.to_bytes(self.RECORD_SIZE_FIELD))
-            self.file.write(buffer)
-            
-            offset_fragmentacao = offset_registro_LED + tam_registro + self.RECORD_SIZE_FIELD
-            tam_fragmentacao = tam_registro_LED - tam_registro - self.RECORD_SIZE_FIELD
-
-            
-            self.file.seek(offset_fragmentacao)
-            n_buffer = n_buffer.ljust(tam_fragmentacao+self.RECORD_SIZE_FIELD, b'\0')
-            self.file.write(n_buffer)
-
-            print(f"Tamanho do espaço reutilizado: {tam_registro_LED} bytes (Sobra de {tam_fragmentacao} bytes)")
-            print(f"Local: offset = {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
-
-
-            if tam_fragmentacao >= self.MIN_SIZE_FRAGMENTATION:
+            if tam_registro_LED - tam_registro - self.RECORD_SIZE_FIELD >= self.MIN_SIZE_FRAGMENTATION:
+                offset_fragmentacao = offset_registro_LED + tam_registro + self.RECORD_SIZE_FIELD
+                tam_fragmentacao = tam_registro_LED - tam_registro - self.RECORD_SIZE_FIELD
                 self.file.seek(offset_fragmentacao)
                 self.file.write(tam_fragmentacao.to_bytes(self.RECORD_SIZE_FIELD))
                 self.file.write("*".encode())
+                n_buffer = n_buffer.ljust(tam_fragmentacao-self.RECORD_SIZE_FIELD-1, b'\0')
+
                 self.inserirEspacoLED(offset_fragmentacao, tam_fragmentacao)
-        
+                
+                self.file.seek(offset_registro_LED)
+                self.file.write(tam_registro.to_bytes(self.RECORD_SIZE_FIELD))
+                self.file.write(buffer)
+
+                print(f"Tamanho do espaço reutilizado: {tam_registro_LED} bytes (Sobra de {tam_fragmentacao} bytes)")
+                print(f"Local: offset = {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
+
+            else:
+                self.file.seek(offset_registro_LED+2)
+                n_buffer = n_buffer.ljust(tam_registro_LED, b'\0')
+                self.file.write(n_buffer)
+                self.file.seek(offset_registro_LED+2)
+                self.file.write(buffer)
+
+                print(f"Tamanho do espaço reutilizado: {tam_registro_LED} bytes")
+                print(f"Local: offset = {offset_registro_LED} bytes ({hex(offset_registro_LED)})\n")
+            
         else:
             self.file.seek(0, 2)
             self.file.write(tam_registro.to_bytes(self.RECORD_SIZE_FIELD))
