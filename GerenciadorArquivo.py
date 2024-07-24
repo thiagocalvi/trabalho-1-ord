@@ -1,7 +1,7 @@
 import struct
 
 class GerenciadorArquivo:
-    def __init__(self, path_file:str, header_size=4, record_size_field=2, min_size_fragmentation=10):
+    def __init__(self, path_file:str, header_size=4, record_size_field=2, min_size_fragmentation=15):
         self.path_file = path_file
         self.file = None
         self.operations_file = None
@@ -162,53 +162,53 @@ class GerenciadorArquivo:
 
 
     #GerenciadorLED
-    def inserirEspacoLED(self, offset_novo_espaco:int, tam_novo_espaco:int) -> None:
+    def inserirEspacoLED(self, offset_novo_espaco:int, tam_novo_espaco:int):
+        end_LED = b'\xff\xff\xff\xff'
+        self.file.seek(0)
+
+        if self.file.read(self.HEADER_SIZE) == end_LED:
             self.file.seek(0)
-            cabecalho = self.file.read(4)
-            end_LED = b'\xff\xff\xff\xff'
+            self.file.write(struct.pack("I", offset_novo_espaco))
+            self.file.seek(offset_novo_espaco+3)
+            self.file.write(end_LED)
+        
+        else:
+            self.file.seek(0)
+            offset_led = struct.unpack("I", self.file.read(self.HEADER_SIZE))[0]
+            self.file.seek(offset_led)
+            tam_cabeca = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
             
-            #Caso 1: LED está vazia
-            if cabecalho == end_LED:
+            if tam_novo_espaco >= tam_cabeca:
+                self.file.seek(offset_novo_espaco+3)
+                self.file.write(struct.pack("I", offset_led))
                 self.file.seek(0)
                 self.file.write(struct.pack("I", offset_novo_espaco))
-                self.file.seek(offset_novo_espaco+3)
-                self.file.write(end_LED)
-            
+
             else:
-                offset_LED = struct.unpack("I", cabecalho)[0]
-                self.file.seek(offset_LED)
-                tam_espaco_LED = int.from_bytes(self.file.read(2))
-                self.file.seek(1,1)
-                next_offset_LED = self.file.read(4)
+                offset_atual = offset_led
+                self.file.seek(offset_atual+3)
+                prox_offset = self.file.read(self.HEADER_SIZE)
+                self.file.seek(struct.unpack("I", prox_offset)[0])
+                prox_tam = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
 
-                #Caso 2: O novo espaço é maior que o primeiro espaço da LED
-                if tam_novo_espaco >= tam_espaco_LED:
-                    self.file.seek(0)
-                    self.file.write(struct.pack("I", offset_novo_espaco))
-                    self.file.seek(offset_novo_espaco+3)
-                    self.file.write(struct.pack("I", offset_LED))
+                while prox_offset != end_LED:
                     
-
-                offset_LED = cabecalho
-
-                #Caso 3: O novo espaço será inserido no meio da LED
-                while next_offset_LED != end_LED:
-                    self.file.seek(struct.unpack("I", next_offset_LED)[0])
-                    tam_next_offset = int.from_bytes(self.file.read(2))
-
-                    if tam_novo_espaco >= tam_next_offset:
+                    if prox_tam <= tam_novo_espaco:
                         self.file.seek(offset_novo_espaco+3)
-                        self.file.write(next_offset_LED)
-                        self.file.seek(struct.unpack("I", offset_LED)[0]+3)
+                        self.file.write(prox_offset)
+                        self.file.seek(offset_atual+3)
                         self.file.write(struct.pack("I", offset_novo_espaco))
+                        return
+                    else:
+                        offset_atual = struct.unpack("I", prox_offset)[0]
+                        self.file.seek(offset_atual+3)
+                        prox_offset = self.file.read(self.HEADER_SIZE)
+                        self.file.seek(struct.unpack("I", prox_offset)[0])
+                        prox_tam = int.from_bytes(self.file.read(self.RECORD_SIZE_FIELD))
                         
-                    offset_LED = next_offset_LED
-                    self.file.seek(struct.unpack("I", offset_LED)[0]+3)
-                    next_offset_LED = self.file.read(4)
 
-                if next_offset_LED == end_LED:
-                    #Caso 4: O novo espaço será inserido no final da LED
-                    self.file.seek(struct.unpack("I", offset_LED)[0]+3)
+                if prox_offset == end_LED:
+                    self.file.seek(offset_atual+3)
                     self.file.write(struct.pack("I", offset_novo_espaco))
                     self.file.seek(offset_novo_espaco+3)
                     self.file.write(end_LED)
@@ -270,4 +270,3 @@ class GerenciadorArquivo:
             tam_LED += 1
 
         return tam_LED
-
