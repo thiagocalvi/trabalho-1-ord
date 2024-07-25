@@ -1,7 +1,7 @@
 import struct
 
 class GerenciadorArquivo:
-    def __init__(self, path_file:str, header_size=4, record_size_field=2, min_size_fragmentation=15):
+    def __init__(self, path_file:str, header_size=4, record_size_field=2, min_size_fragmentation=10):
         self.path_file = path_file
         self.file = None
         self.operations_file = None
@@ -238,6 +238,7 @@ class GerenciadorArquivo:
         lista: list[list[int]] = []
         self.file.seek(0)
         offset = self.file.read(self.HEADER_SIZE)
+        tamanhoLED = 0
         
         if offset == b'\xff\xff\xff\xff':
             print("LED vazia")
@@ -250,23 +251,11 @@ class GerenciadorArquivo:
             lista.append([offset, tam])
             next_offset = self.file.read(self.HEADER_SIZE)
             offset = next_offset
+            tamanhoLED += 1
         
         # Imprimir a lista de offsets e tamanhos
         for x in lista:
             print(f"[offset: {x[0]}, tam: {x[1]}] -> ", end="")
         
         print("[offset: -1]")
-        print(f"\nTotal: {self.tamanhoLED()} espaços disponíveis")
-
-    def tamanhoLED(self) -> int:
-        tam_LED:int = 0
-        self.file.seek(0)
-        offset = self.file.read(self.HEADER_SIZE)
-
-        while offset != b'\xff\xff\xff\xff':
-            offset = struct.unpack("I", offset)[0]
-            self.file.seek(offset+3)
-            offset = self.file.read(self.HEADER_SIZE)      
-            tam_LED += 1
-
-        return tam_LED
+        print(f"\nTotal: {tamanhoLED} espaços disponíveis")
